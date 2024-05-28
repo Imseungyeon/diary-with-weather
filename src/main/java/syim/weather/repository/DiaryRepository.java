@@ -16,4 +16,7 @@ public interface DiaryRepository extends JpaRepository<Diary, Integer>{
 
     //해당 Date에 해당하는 Diary 중 첫 번째 Diary, 즉 쿼리문 limit 역할
     Diary getFirstByDate(LocalDate date);
+
+    //해당 Date에 해당하는 Diary 모두 삭제
+    void deleteAllByDate(LocalDate date);
 }

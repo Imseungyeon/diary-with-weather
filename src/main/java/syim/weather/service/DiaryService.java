@@ -6,6 +6,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import syim.weather.domain.Diary;
 import syim.weather.repository.DiaryRepository;
 
@@ -64,6 +65,12 @@ public class DiaryService {
         nowDiary.setText(text);
         //덮어쓰기
         diaryRepository.save(nowDiary);
+    }
+
+    //@Transactional 어노테이션 필요
+    @Transactional
+    public void deleteDiary(LocalDate date){
+        diaryRepository.deleteAllByDate(date);
     }
 
     private String getWeatherString(){
