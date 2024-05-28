@@ -3,9 +3,11 @@ package syim.weather.controller;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import syim.weather.domain.Diary;
 import syim.weather.service.DiaryService;
 
 import java.time.LocalDate;
+import java.util.List;
 
 //@RestController는 기본 @Controller에 상태코드(200, 404)를 지정해서 내려줄 수 있게함
 @RestController
@@ -27,8 +29,9 @@ public class DiaryController {
         diaryService.createDiary(date, text);
     }
 
+    //일기를 날짜에 따라 조회
     @GetMapping("/read/diary")
-    void readDiary(@RequestParam LocalDate date){
-
+    List<Diary> readDiary(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
+        return diaryService.readDiary(date);
     }
 }
