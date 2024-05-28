@@ -19,7 +19,7 @@ public class DiaryController {
         this.diaryService = diaryService;
     }
 
-    //조회할 때는 @GetMapping 사용하고 저장할 때는 Post를 많이 사용함
+    //조회할 때는 @GetMapping 사용하고 저장할 때는 Post, 수정할 때는 Put
     //""안의 create/diary라는 path로 요청을 보내면 함수가 동작
     //@RequestParam으로 인해 /create/diary?date = 20230611과 같은 형식으로 뒤에 파라미터로 보낼 수 있게 되는 것
     //날짜 형식이 제각각이기 때문에 @DateTimeFormat으로 형식 지정
@@ -39,5 +39,10 @@ public class DiaryController {
     List<Diary> readDiaries(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
                             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
         return diaryService.readDiaries(startDate, endDate);
+    }
+
+    @PutMapping("/update/diary")
+    void updateDiary(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, @RequestBody String text){
+        diaryService.updateDiary(date, text);
     }
 }
