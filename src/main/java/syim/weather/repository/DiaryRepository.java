@@ -11,4 +11,6 @@ import java.util.List;
 public interface DiaryRepository extends JpaRepository<Diary, Integer>{
     //JPA에서 자동으로 생성한 findAll과 같은 쿼리메소드 사용
     List<Diary> findAllByDate(LocalDate date);
+
+    List<Diary> findAllByDateBetween(LocalDate startDate, LocalDate endDate);
 }
