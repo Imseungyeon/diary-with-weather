@@ -1,14 +1,21 @@
 package syim.weather.service;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import syim.weather.domain.Diary;
+import syim.weather.repository.DiaryRepository;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class DiaryService {
@@ -17,9 +24,31 @@ public class DiaryService {
     @Value("${openweathermap.key}")
     private String apiKey;
 
+    private final DiaryRepository diaryRepository;
+
+    //DiaryService 빈이 생성될 시 DiaryRepository 가져옴
+    public DiaryService(DiaryRepository diaryRepository) {
+        this.diaryRepository = diaryRepository;
+    }
+
     public void createDiary(LocalDate date, String text){
-        //open weather map에서 날씨 데이터 가져오기
+        //기능1. openweathermap에서 날씨 데이터 가져오기
         String weatherData = getWeatherString();
+
+        //기능2. 받아온 날씨 json 파싱
+        Map<String, Object> parsedWeather = parseWeather(weatherData);
+
+        //기능3. 파싱된 데이터, 일기 DB에 넣기
+        Diary nowDiary = new Diary(); //Diary에 @NoArgsConstructor 어노테이션이 있기에 빈 다이어리 생성 가능
+        nowDiary.setWeather(parsedWeather.get("main").toString());
+        nowDiary.setIcon(parsedWeather.get("icon").toString());
+        nowDiary.setTemperature((double)parsedWeather.get("temp"));
+        nowDiary.setText(text);
+        nowDiary.setDate(date);
+        //nowDiary를 DiaryRepository를 통해 DB에 save
+        diaryRepository.save(nowDiary);
+
+
     }
 
     private String getWeatherString(){
@@ -52,5 +81,35 @@ public class DiaryService {
         } catch (Exception e) {
             return "failed to get response";
         }
+    }
+
+    private Map<String, Object> parseWeather(String jsonString) {
+        //openweathermap에서 String값으로 받아온 데이터를 JSONParser를 이용하여 파싱하고, 그 안의 필요한 값을 해시맵 형태로 반환
+
+        //googlecode에서 가져온 JSONParser 사용
+        JSONParser jsonParser = new JSONParser();
+        JSONObject jsonObject;
+
+        //파싱 작업이 정상적으로 동작하지 않는 경우 핸들링을 위한 try-catch 문
+        try {
+            jsonObject = (JSONObject) jsonParser.parse(jsonString);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+
+        //json 내 main, weather를 JSONObject로 가져온 후 그 안의 값도 가져와서 resultMap에 해쉬 형태로 넣기
+        //main 내 온도값, weather 내 main, icon 데이터
+        Map<String, Object> resultMap = new HashMap<>();
+        JSONObject mainData = (JSONObject) jsonObject.get("main");
+        resultMap.put("temp", mainData.get("temp"));
+        //weather은 []대괄호 안에 있으므로 JSONArray로 받아서 Object로
+        JSONArray weatherArray = (JSONArray) jsonObject.get("weather");
+        //list안의 객체가 1개이므로 인덱스 = 0
+        JSONObject weatherData = (JSONObject) weatherArray.get(0);
+        resultMap.put("main", weatherData.get("main"));
+        resultMap.put("icon", weatherData.get("icon"));
+        return resultMap;
+
+
     }
 }
