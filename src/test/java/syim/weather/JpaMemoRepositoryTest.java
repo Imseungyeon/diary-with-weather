@@ -13,7 +13,8 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-//DB에 수정사항 만들지 않는 어노테이션 = Transactional
+//DB에 수정사항 만들지 않는 어노테이션 = Transactional 사용
+//(테스트 코드 내 @Transactional -> 모두 롤백)
 @SpringBootTest
 @Transactional
 public class JpaMemoRepositoryTest {

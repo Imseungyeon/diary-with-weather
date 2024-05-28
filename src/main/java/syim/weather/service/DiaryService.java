@@ -6,6 +6,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import syim.weather.domain.Diary;
 import syim.weather.repository.DiaryRepository;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@Transactional
 public class DiaryService {
 
     //@Value를 통해 SpringBoot에 이미 지정되어 있는 변수 openweathermap.key의 값을 가져와서 apiKey에 넣어줄 것
@@ -33,6 +35,7 @@ public class DiaryService {
         this.diaryRepository = diaryRepository;
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void createDiary(LocalDate date, String text){
         //기능1. openweathermap에서 날씨 데이터 가져오기
         String weatherData = getWeatherString();
@@ -51,6 +54,7 @@ public class DiaryService {
         diaryRepository.save(nowDiary);
     }
 
+    @Transactional(readOnly = true)
     public List<Diary> readDiary(LocalDate date){
         //diary를 가져오려면 db를 조회해야 하므로 diaryRepository 통하여
         return diaryRepository.findAllByDate(date);
@@ -68,7 +72,6 @@ public class DiaryService {
     }
 
     //@Transactional 어노테이션 필요
-    @Transactional
     public void deleteDiary(LocalDate date){
         diaryRepository.deleteAllByDate(date);
     }
