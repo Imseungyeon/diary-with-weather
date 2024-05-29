@@ -4,11 +4,14 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import syim.weather.WeatherApplication;
 import syim.weather.domain.DateWeather;
 import syim.weather.domain.Diary;
 import syim.weather.repository.DateWeatherRopository;
@@ -35,6 +38,8 @@ public class DiaryService {
 
     private final DateWeatherRopository dateWeatherRopository;
 
+    private static final Logger logger = LoggerFactory.getLogger(WeatherApplication.class);
+
     //DiaryService 빈이 생성될 시 DiaryRepository 가져옴
     public DiaryService(DiaryRepository diaryRepository, DateWeatherRopository dateWeatherRopository) {
         this.diaryRepository = diaryRepository;
@@ -47,11 +52,12 @@ public class DiaryService {
     @Scheduled(cron = "0 0 3 * * *")
     public void saveWeatherDate(){
         dateWeatherRopository.save(getWeatherFromApi());
+        logger.info("success to get weather data");
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void createDiary(LocalDate date, String text){
-
+        logger.info("started to create diary");
         //기존 DB에 저장된 날씨 데이터 가져오기
         DateWeather dateWeather = getDateWeather(date);
 
@@ -62,6 +68,8 @@ public class DiaryService {
         nowDiary.setDate(date);
         //nowDiary를 DiaryRepository를 통해 DB에 save
         diaryRepository.save(nowDiary);
+
+        logger.info("end to create diary");
     }
 
     //파싱하는 작업을 하루에 한 번 진행하면 됨
@@ -93,6 +101,7 @@ public class DiaryService {
 
     @Transactional(readOnly = true)
     public List<Diary> readDiary(LocalDate date){
+        logger.debug("read diary");
         //diary를 가져오려면 db를 조회해야 하므로 diaryRepository 통하여
         return diaryRepository.findAllByDate(date);
     }
