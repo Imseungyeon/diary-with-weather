@@ -5,10 +5,13 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import syim.weather.domain.DateWeather;
 import syim.weather.domain.Diary;
+import syim.weather.repository.DateWeatherRopository;
 import syim.weather.repository.DiaryRepository;
 
 import java.io.BufferedReader;
@@ -30,28 +33,62 @@ public class DiaryService {
 
     private final DiaryRepository diaryRepository;
 
+    private final DateWeatherRopository dateWeatherRopository;
+
     //DiaryService 빈이 생성될 시 DiaryRepository 가져옴
-    public DiaryService(DiaryRepository diaryRepository) {
+    public DiaryService(DiaryRepository diaryRepository, DateWeatherRopository dateWeatherRopository) {
         this.diaryRepository = diaryRepository;
+        this.dateWeatherRopository = dateWeatherRopository;
+    }
+
+    //매일 새벽 1시마다 날씨 데이터를 저장하는 함수 @Scheduled cron 사용하여 구현
+    //DB 관련 작업이므로 Transactional
+    @Transactional
+    @Scheduled(cron = "0 0 3 * * *")
+    public void saveWeatherDate(){
+        dateWeatherRopository.save(getWeatherFromApi());
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void createDiary(LocalDate date, String text){
+
+        //기존 DB에 저장된 날씨 데이터 가져오기
+        DateWeather dateWeather = getDateWeather(date);
+
+        //파싱된 데이터, 일기 DB에 넣기
+        Diary nowDiary = new Diary(); //Diary에 @NoArgsConstructor 어노테이션이 있기에 빈 다이어리 생성 가능
+        nowDiary.setDateWeather(dateWeather);
+        nowDiary.setText(text);
+        nowDiary.setDate(date);
+        //nowDiary를 DiaryRepository를 통해 DB에 save
+        diaryRepository.save(nowDiary);
+    }
+
+    //파싱하는 작업을 하루에 한 번 진행하면 됨
+    private DateWeather getWeatherFromApi(){
         //기능1. openweathermap에서 날씨 데이터 가져오기
         String weatherData = getWeatherString();
 
         //기능2. 받아온 날씨 json 파싱
         Map<String, Object> parsedWeather = parseWeather(weatherData);
 
-        //기능3. 파싱된 데이터, 일기 DB에 넣기
-        Diary nowDiary = new Diary(); //Diary에 @NoArgsConstructor 어노테이션이 있기에 빈 다이어리 생성 가능
-        nowDiary.setWeather(parsedWeather.get("main").toString());
-        nowDiary.setIcon(parsedWeather.get("icon").toString());
-        nowDiary.setTemperature((double)parsedWeather.get("temp"));
-        nowDiary.setText(text);
-        nowDiary.setDate(date);
-        //nowDiary를 DiaryRepository를 통해 DB에 save
-        diaryRepository.save(nowDiary);
+        //기능3. 파싱된 날씨를 도메인 DateWeather 안에 넣기
+        DateWeather dateWeather = new DateWeather();
+        dateWeather.setDate(LocalDate.now());
+        dateWeather.setWeather(parsedWeather.get("main").toString());
+        dateWeather.setIcon(parsedWeather.get("icon").toString());
+        dateWeather.setTemperature((double)parsedWeather.get("temp"));
+        return dateWeather;
+    }
+
+    private DateWeather getDateWeather(LocalDate date){
+        List<DateWeather> dateweatherListFromDB = dateWeatherRopository.findAllByDate(date);
+        if (dateweatherListFromDB.size() == 0){
+            //DB에 해당 date에 대한 날씨 정보가 없다면 새로 api에서 가져오는 것으로
+            return getWeatherFromApi();
+        } else{
+            return dateweatherListFromDB.get(0);
+        }
     }
 
     @Transactional(readOnly = true)
