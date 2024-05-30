@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import syim.weather.WeatherApplication;
 import syim.weather.domain.DateWeather;
 import syim.weather.domain.Diary;
+import syim.weather.error.InvalidDate;
 import syim.weather.repository.DateWeatherRopository;
 import syim.weather.repository.DiaryRepository;
 
@@ -101,7 +102,11 @@ public class DiaryService {
 
     @Transactional(readOnly = true)
     public List<Diary> readDiary(LocalDate date){
-        logger.debug("read diary");
+
+//        if (date.isAfter(LocalDate.ofYearDay(3000, 1))){
+//            //3000년 넘는 날짜를 input으로 넣었다면 예외 처리
+//            throw new InvalidDate();
+//        }
         //diary를 가져오려면 db를 조회해야 하므로 diaryRepository 통하여
         return diaryRepository.findAllByDate(date);
     }
