@@ -17,7 +17,7 @@ public class SwaggerConfig {
 
     private Info apiInfo() {
         return new Info()
-                .title("weather-with-diary project")
+                .title("Diary-with-weather project")
                 .description("해당 날짜의 날씨와 함께 일기 텍스트를 CRUD 할 수 있는 백엔드 API 입니다.")
                 .version("1.0");
     }

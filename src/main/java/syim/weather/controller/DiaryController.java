@@ -28,14 +28,14 @@ public class DiaryController {
     //Body값으로 String 형식의 일기를 넣을 것
     @Operation(summary = "날짜와 일기 텍스트를 DB에 저장합니다.", description = "파라미터로 받은 날짜에 대한 날씨와 함께 일기를 생성하여 저장합니다.")
     @PostMapping("/create/diary")
-    void createDiary(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @Parameter(name = "date", example = "yyyy-MM-dd") LocalDate date, @RequestBody String text){
+    void createDiary(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @Parameter(name = "date", description = "yyyy-MM-dd", example = "2024-03-09") LocalDate date, @RequestBody String text){
         diaryService.createDiary(date, text);
     }
 
     //일기를 날짜에 따라 조회
     @Operation(summary = "선택한 날짜의 모든 날씨 + 일기 데이터를 가져옵니다.", description = "파라미터로 받은 날짜에 해당하는 날씨와 일기를 조회합니다.")
     @GetMapping("/read/diary")
-    List<Diary> readDiary(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @Parameter(name = "date", example = "yyyy-MM-dd") LocalDate date){
+    List<Diary> readDiary(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @Parameter(name = "date", description = "yyyy-MM-dd", example = "2024-03-09") LocalDate date){
         return diaryService.readDiary(date);
     }
 
@@ -48,13 +48,13 @@ public class DiaryController {
 
     @Operation(summary = "선택한 날짜의 일기 텍스트를 수정합니다.", description = "파라미터로 받은 날짜에 대한 일기를 수정하여 저장합니다.")
     @PutMapping("/update/diary")
-    void updateDiary(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @Parameter(name = "date", example = "yyyy-MM-dd") LocalDate date, @RequestBody String text){
+    void updateDiary(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @Parameter(name = "date", description = "yyyy-MM-dd", example = "2024-03-09") LocalDate date, @RequestBody String text){
         diaryService.updateDiary(date, text);
     }
 
     @Operation(summary = "선택한 날짜의 일기를 삭제합니다.", description = "파라미터로 받은 날짜에 대한 일기를 삭제합니다.")
     @DeleteMapping("/delete/diary")
-    void deleteDiary(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @Parameter(name = "date", example = "yyyy-MM-dd") LocalDate date){
+    void deleteDiary(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @Parameter(name = "date", description = "yyyy-MM-dd", example = "2024-03-09") LocalDate date){
         diaryService.deleteDiary(date);
     }
 }
